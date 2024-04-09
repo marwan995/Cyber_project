@@ -29,13 +29,7 @@ public class Client2 {
         }
     }
 
-
-
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-
-        System.out.println("Your name: ");
-        //  String name = (new Scanner(System.in)).nextLine();
-        initializeSocket();
+    static BigInteger setupConnection() throws NoSuchAlgorithmException {
         Map<String, BigInteger> public_keys = Utilities.readPublicKeys();
         System.out.println(public_keys);
         Map<String, BigInteger> dh_keys = Utilities.keysGeneration(public_keys.get("dh_q"), public_keys.get("dh_alpha"));
@@ -56,6 +50,18 @@ public class Client2 {
         }
 
         BigInteger common_key = Utilities.diffieHellmanSecretKey(recipient_dh_public,dh_keys.get("private"),public_keys.get("dh_q"));
+        return  common_key;
+    }
+
+
+    public static void main(String[] args) throws  NoSuchAlgorithmException {
+
+        System.out.println("Your name: ");
+        //  String name = (new Scanner(System.in)).nextLine();
+        initializeSocket();
+
+        BigInteger common_key =  setupConnection();
+        System.out.println(common_key);
 
     }
 }

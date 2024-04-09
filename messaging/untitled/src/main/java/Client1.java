@@ -50,6 +50,7 @@ public class Client1 {
         //String name = (new Scanner(System.in)).nextLine();
         initializeSocket();
         BigInteger common_key =  setupConnection();
+        System.out.println(common_key);
 
     }
 }
