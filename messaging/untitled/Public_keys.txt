@@ -1,0 +1,4 @@
+dh_q: 211
+dh_alpha: 32
+elgamal_q: 211
+elgamal_alpha: 32

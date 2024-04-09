@@ -1,0 +1,3 @@
+Hello, the flag is CMPN{Spring2024}
+got by steghide extract -sf "image" but didnt know that the password is part of CTR which 
+i know it would be HIDING 
