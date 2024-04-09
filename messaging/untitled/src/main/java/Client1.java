@@ -2,8 +2,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Client1 {
     static ServerSocket receive_ss;
@@ -23,7 +25,7 @@ public class Client1 {
         System.out.println("connected successfully.");
     }
 
-    static BigInteger setupConnection() throws NoSuchAlgorithmException {
+    static Key setupConnection() throws NoSuchAlgorithmException {
         Map<String, BigInteger> public_keys = Utilities.readPublicKeys();
         Map<String, BigInteger> dh_keys = Utilities.keysGeneration(public_keys.get("dh_q"), public_keys.get("dh_alpha"));
         Map<String, BigInteger> elgamal_keys = Utilities.keysGeneration(public_keys.get("elgamal_q"), public_keys.get("elgamal_alpha"));
@@ -40,17 +42,23 @@ public class Client1 {
         }
 
         Utilities.sendKeySigned(msg_signed.get("s1").toString(), msg_signed.get("s2").toString(), dh_keys.get("public").toString(), send_socket);
-        BigInteger common_key = Utilities.diffieHellmanSecretKey(recipient_dh_public,dh_keys.get("private"),public_keys.get("dh_q"));
+        Key common_key = Utilities.generateCommonKey(recipient_dh_public,dh_keys.get("private"),public_keys.get("dh_q"));
         return  common_key;
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
 
         System.out.println("Your name: ");
-        //String name = (new Scanner(System.in)).nextLine();
+        String name = (new Scanner(System.in)).nextLine();
         initializeSocket();
-        BigInteger common_key =  setupConnection();
+        Key common_key =  setupConnection();
         System.out.println(common_key);
+        
+        String recipient_name = Utilities.exchangeNames(name,send_socket,receive_socket);
+        Thread sendThread = new Thread(new SendThread(send_socket, common_key,name));
+        Thread receiveThread = new Thread(new ReceiveThread(receive_socket, common_key,recipient_name));
 
+        sendThread.start();
+        receiveThread.start();
     }
 }

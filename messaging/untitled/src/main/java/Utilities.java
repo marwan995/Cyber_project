@@ -1,4 +1,6 @@
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.Socket;
@@ -6,6 +8,7 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,9 +85,11 @@ public class Utilities {
     }
 
 
-    public static BigInteger diffieHellmanSecretKey(BigInteger public_key, BigInteger private_key, BigInteger q) {
+    public static Key generateCommonKey(BigInteger public_key, BigInteger private_key, BigInteger q) {
         BigInteger secret_key = public_key.modPow(private_key, q);
-        return secret_key;
+        byte[] key_bytes = SHA256.digest(secret_key.toByteArray());
+        SecretKey key = new SecretKeySpec(key_bytes, "AES");
+        return  key;
     }
     public static BigInteger generateRandomBigInteger(BigInteger max, BigInteger modulus) {
         SecureRandom random = new SecureRandom();
@@ -102,7 +107,6 @@ public class Utilities {
             DataOutputStream outToServer = new DataOutputStream(socket.getOutputStream());
             outToServer.writeUTF(msg);
             outToServer.flush();
-            System.out.println("Message sent to Client.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -133,15 +137,26 @@ public class Utilities {
         sendMessage(key.toString(),send);
         return new BigInteger(receiveMessage(receive));
     }
-    public static byte[] encryptAES(String data, Key key) throws Exception {
+    static String exchangeNames(String name,Socket send,Socket receive){
+        sendMessage(name,send);
+        return receiveMessage(receive);
+    }
+    public static String encryptMessage(String data, Key key) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        return cipher.doFinal(data.getBytes());
+        String encrypted_string = Base64.getEncoder().encodeToString( cipher.doFinal(data.getBytes()));
+
+        return encrypted_string;
     }
-    public static String decryptAES(byte[] encryptedData, Key key) throws Exception {
+    public static String decryptMessage(String encryptedString, Key key) throws Exception {
+        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedString);
+
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] decryptedBytes = cipher.doFinal(encryptedData);
+        byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
         return new String(decryptedBytes);
+    }
+    public static void startApp (){
+
     }
 }

@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Scanner;
@@ -29,7 +30,7 @@ public class Client2 {
         }
     }
 
-    static BigInteger setupConnection() throws NoSuchAlgorithmException {
+    static Key setupConnection() throws NoSuchAlgorithmException {
         Map<String, BigInteger> public_keys = Utilities.readPublicKeys();
         System.out.println(public_keys);
         Map<String, BigInteger> dh_keys = Utilities.keysGeneration(public_keys.get("dh_q"), public_keys.get("dh_alpha"));
@@ -49,7 +50,7 @@ public class Client2 {
             System.exit(1);
         }
 
-        BigInteger common_key = Utilities.diffieHellmanSecretKey(recipient_dh_public,dh_keys.get("private"),public_keys.get("dh_q"));
+        Key common_key = Utilities.generateCommonKey(recipient_dh_public,dh_keys.get("private"),public_keys.get("dh_q"));
         return  common_key;
     }
 
@@ -57,11 +58,19 @@ public class Client2 {
     public static void main(String[] args) throws  NoSuchAlgorithmException {
 
         System.out.println("Your name: ");
-        //  String name = (new Scanner(System.in)).nextLine();
+        String name = (new Scanner(System.in)).nextLine();
         initializeSocket();
 
-        BigInteger common_key =  setupConnection();
+        Key common_key =  setupConnection();
         System.out.println(common_key);
+        String recipient_name = Utilities.exchangeNames(name,send_socket,receive_socket);
+
+        Thread sendThread = new Thread(new SendThread(send_socket, common_key,name));
+        Thread receiveThread = new Thread(new ReceiveThread(receive_socket, common_key,recipient_name));
+
+        // Start the threads
+        sendThread.start();
+        receiveThread.start();
 
     }
 }
