@@ -68,6 +68,7 @@ public class Utilities {
         BigInteger k_inverse = k.modInverse(q.subtract(BigInteger.ONE));
         BigInteger s2_temp = k_inverse.multiply(m.subtract(elGamal_private.multiply(s1))).mod(q.subtract(BigInteger.ONE));
         BigInteger s2 = s2_temp.mod(q.subtract(BigInteger.ONE));
+
         msg_signed.put("s1",s1);
         msg_signed.put("s2",s2);
         return msg_signed;
@@ -77,6 +78,7 @@ public class Utilities {
     public static boolean verifySignature(BigInteger s1,BigInteger s2 ,BigInteger dh_public,BigInteger elgamal_public,BigInteger q,BigInteger alpha){
         byte[] hashedMessage = SHA1.digest(dh_public.toByteArray());
         BigInteger m = new BigInteger(hashedMessage);
+        System.out.println(m);
         BigInteger V = (elgamal_public.modPow(s1,q)).multiply(s1.modPow(s2,q)).mod(q);
         BigInteger W = alpha.modPow(m,q);
 
